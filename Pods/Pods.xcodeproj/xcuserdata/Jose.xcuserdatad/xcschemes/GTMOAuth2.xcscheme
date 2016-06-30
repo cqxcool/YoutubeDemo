@@ -14,10 +14,10 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '7151D6AC7F1756D44C1A4C7B'
-               BlueprintName = 'youtube-ios-player-helper'
+               BlueprintIdentifier = '94A4F1300803100B878C0826'
+               BlueprintName = 'GTMOAuth2'
                ReferencedContainer = 'container:Pods.xcodeproj'
-               BuildableName = 'libyoutube-ios-player-helper.a'>
+               BuildableName = 'libGTMOAuth2.a'>
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>

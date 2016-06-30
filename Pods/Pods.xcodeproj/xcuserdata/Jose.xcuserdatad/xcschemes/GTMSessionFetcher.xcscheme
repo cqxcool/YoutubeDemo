@@ -14,10 +14,10 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '7151D6AC7F1756D44C1A4C7B'
-               BlueprintName = 'youtube-ios-player-helper'
+               BlueprintIdentifier = 'EC236C1E1349BE2DE23EC6B8'
+               BlueprintName = 'GTMSessionFetcher'
                ReferencedContainer = 'container:Pods.xcodeproj'
-               BuildableName = 'libyoutube-ios-player-helper.a'>
+               BuildableName = 'libGTMSessionFetcher.a'>
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
