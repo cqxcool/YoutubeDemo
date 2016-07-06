@@ -10,6 +10,7 @@
 
 @interface ViewController : UIViewController
 
+- (IBAction)featch:(id)sender;
 
 @end
 

@@ -14,6 +14,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>GoogleAPIClientForREST.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -27,7 +32,17 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>3B41C3B08052186816ACBBDD64C494C2</key>
+		<key>0FE9AE2ECE99588908EAA42967C09D1B</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>26C5F2396BE2B99F74213A51190CABCC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>2B5D77AF33E8A72D5054AD863C71CD18</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -37,12 +52,7 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>6F2A2B4D4A40ACCDC6DAFF493130D0DC</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>AE0EA33078F1E2F68D4C3E1CB66C357A</key>
+		<key>E78BB76A28C7EE2E1CC0E9B93A96B7CB</key>
 		<dict>
 			<key>primary</key>
 			<true/>
