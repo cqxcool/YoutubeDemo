@@ -31,6 +31,7 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
 @property(nonatomic,strong) NSString *token;
 @property (nonatomic, readonly) GTLRYouTubeService *youTubeService;
 @property (nonatomic,strong) GTMOAuth2Authentication *myAuth;
+@property (nonatomic,strong) GTLRYouTube_LiveStream *myStream;
 @end
 
 @implementation ViewController
@@ -114,64 +115,181 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
 
 
 - (IBAction)fetch:(id)sender {
-    [self fetchPublicPlaylistWithID:@"news"];
+    [self fetchCagegory];
 }
 - (IBAction)fetchMy:(id)sender {
     [self fetchMyChannelList];
 }
 
-- (void)fetchPublicPlaylistWithID:(NSString *)playlistID {
-    // Create a service for executing queries. For best performance, reuse
-    // the same service instance throughout the app.
-    //
-    // Some of the service's properties may be set on a per-query basis
-    // via the query's executionParameters property.
-    GTLRYouTubeService *service = [[GTLRYouTubeService alloc] init];
-    
-    // Services which do not require user authentication may need an API key
-    // from the Google Developers Console
-    service.APIKey = @"AIzaSyAnVJCQqClq2bM8haKfT6LzqBp-lh9nfkc";
-//    service.authorizer = service.authorizer
-    
-    // APIs which retrieve a collection of items may need to fetch
-    // multiple pages. The service can optionally make multiple requests
-    // to fetch all pages. The page size can be set in most APIs with the
-    // query parameter maxResults.
-    service.shouldFetchNextPages = YES;
-    
-    // The library can retry common networking errors. The retry criteria
-    // may be customized by setting the service's retryBlock property.
-    service.retryEnabled = YES;
-    
-    // Each API method has a unique class.  The required properties
-    // of the API method are the parameters of the constructor.
-    // Optional properties of the API method are properties of the
-    // class.
-    
-    // The YouTube API requires a "part" parameter for each query.
-    // The playlist ID an an optional property of the method.
-    GTLRYouTubeQuery_PlaylistItemsList *query =
-    [GTLRYouTubeQuery_PlaylistItemsList queryWithPart:@"snippet"];
-    query.playlistId = playlistID;
-    
-    // A ticket is returned to let the app monitor or cancel query execution.
-    GTLRServiceTicket *ticket =
+- (IBAction)liveStreamList:(id)sender {
+    GTLRYouTubeService *service = self.youTubeService;
+    GTLRYouTubeQuery_LiveStreamsList *query =
+    [GTLRYouTubeQuery_LiveStreamsList queryWithPart:@"id,snippet,contentDetails,status"];
+    query.mine = YES;
     [service executeQuery:query
         completionHandler:^(GTLRServiceTicket *callbackTicket,
-                            GTLRYouTube_PlaylistItemListResponse *playlistItemList,
+                            GTLRYouTube_LiveStreamListResponse *liveStreamList,
                             NSError *callbackError) {
-            // This callback block is run when the fetch completes.
-            if (callbackError != nil) {
-                NSLog(@"Fetch failed: %@", callbackError);
+            if (callbackError) {
+                NSLog(@"Could not fetch video category list: %@", callbackError);
             } else {
-                // The error is nil, so the fetch succeeded.
-                //
-                // GTLRYouTube_PlaylistItemListResponse derives from
-                // GTLRCollectionObject, so it supports iteration of
-                // items and subscript access to items.
-                for (GTLRYouTube_PlaylistItem *item in playlistItemList) {
-                    // Print the name of each playlist item.
-                    NSLog(@"%@", item.snippet.title);
+                NSLog(@"category list = %@",liveStreamList);
+                for (GTLRYouTube_LiveStream *liveStream in liveStreamList) {
+                    NSString *title = liveStream.snippet.title;
+                    NSString *categoryID = liveStream.identifier;
+                    NSLog(@"title = %@ inject=%@",title,liveStream.cdn.ingestionInfo);
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//                        [self bind:broadCast];
+                    });
+                }
+                }
+        }];
+}
+- (IBAction)newBroadcast:(id)sender {
+    GTLRYouTubeService *service = self.youTubeService;
+    GTLRYouTube_LiveBroadcast *newBroadcast = [[GTLRYouTube_LiveBroadcast alloc] init];
+    newBroadcast.kind = @"youtube#liveBroadcast";
+    
+    GTLRYouTube_LiveBroadcastStatus *status = [[GTLRYouTube_LiveBroadcastStatus alloc] init];
+    status.privacyStatus = @"public";
+    newBroadcast.status = status;
+    
+    GTLRYouTube_LiveBroadcastSnippet *snippet = [[GTLRYouTube_LiveBroadcastSnippet alloc] init];
+    snippet.title = @"title";
+    snippet.scheduledStartTime = [GTLRDateTime dateTimeWithDate:[NSDate date]];
+    snippet.scheduledEndTime = [GTLRDateTime dateTimeWithDate:[NSDate dateWithTimeIntervalSinceNow:100000]];
+    newBroadcast.snippet = snippet;
+    
+    GTLRYouTubeQuery_LiveBroadcastsInsert *insertQuery =  [GTLRYouTubeQuery_LiveBroadcastsInsert queryWithObject:newBroadcast part:@"snippet,status"];
+    [service executeQuery:insertQuery
+        completionHandler:^(GTLRServiceTicket *callbackTicket,
+                            GTLRYouTube_LiveBroadcast *returnBroadcast,
+                            NSError *callbackError) {
+            if (callbackError) {
+                NSLog(@"Could not fetch video category list: %@", callbackError);
+            } else {
+                NSLog(@"category list = %@",returnBroadcast);
+                [self bind:returnBroadcast];
+            }
+        }];
+    
+}
+
+- (IBAction)LiveBroadList:(id)sender {
+    GTLRYouTubeService *service = self.youTubeService;
+    GTLRYouTubeQuery_LiveBroadcastsList *query =
+    [GTLRYouTubeQuery_LiveBroadcastsList queryWithPart:@"id,snippet,contentDetails,status"];
+    query.mine = YES;
+    query.broadcastType = @"persistent";
+    [service executeQuery:query
+        completionHandler:^(GTLRServiceTicket *callbackTicket,
+                            GTLRYouTube_LiveBroadcastListResponse *categoryList,
+                            NSError *callbackError) {
+            if (callbackError) {
+                NSLog(@"Could not fetch video category list: %@", callbackError);
+            } else {
+                NSLog(@"category list = %@",categoryList);
+                for (GTLRYouTube_LiveBroadcast *broadCast in categoryList) {
+                    NSString *title = broadCast.snippet.title;
+                    NSString *categoryID = broadCast.identifier;
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                        [self bind:broadCast];
+                      //  [self insert:broadCast];
+                    });
+                }
+            }
+        }];
+}
+
+
+- (void)insert:(GTLRYouTube_LiveBroadcast*)broadCast
+{
+    GTLRYouTubeService *service = self.youTubeService;
+    GTLRYouTubeQuery_LiveBroadcastsInsert *query =
+    [GTLRYouTubeQuery_LiveBroadcastsInsert queryWithObject:broadCast part:@"snippet,contentDetails,status"];
+    [service executeQuery:query
+        completionHandler:^(GTLRServiceTicket *callbackTicket,
+                            GTLRYouTube_LiveBroadcast *insertBroadcast,
+                            NSError *callbackError) {
+            if (callbackError) {
+                NSLog(@"Could not fetch video category list: %@", callbackError);
+            } else {
+                [self bind:insertBroadcast];
+            }
+        }];
+}
+
+
+- (void)bind:(GTLRYouTube_LiveBroadcast*)broadCast
+{
+    
+    GTLRYouTubeService *service = self.youTubeService;
+    
+    GTLRYouTube_LiveStream *newStream = [[GTLRYouTube_LiveStream alloc] init];
+    newStream.kind = @"youtube#liveStream";
+    GTLRYouTube_LiveStreamSnippet *snippet = [[GTLRYouTube_LiveStreamSnippet alloc] init];
+    snippet.title  = @"titile";
+    newStream.snippet = snippet;
+    GTLRYouTube_CdnSettings *setting = [[GTLRYouTube_CdnSettings alloc] init];
+    setting.format = @"240p";
+    setting.ingestionType = @"rtmp";
+    newStream.cdn = setting;
+    
+    
+    GTLRYouTubeQuery_LiveStreamsInsert *streamQuery =
+    [GTLRYouTubeQuery_LiveStreamsInsert queryWithObject:newStream part:@"id,snippet,cdn,status"];
+    [service executeQuery:streamQuery
+        completionHandler:^(GTLRServiceTicket *callbackTicket,
+                            GTLRYouTube_LiveStream *liveStream,
+                            NSError *callbackError) {
+            if (callbackError) {
+                NSLog(@"Could not fetch video category list: %@", callbackError);
+            } else {
+                NSLog(@"liveStream list = %@ path = %@",liveStream,liveStream.cdn.ingestionInfo);
+                broadCast.contentDetails.boundStreamId = liveStream.identifier;
+                self.myStream = liveStream;
+                GTLRYouTubeQuery_LiveBroadcastsBind *query =
+                [GTLRYouTubeQuery_LiveBroadcastsBind queryWithIdentifier:broadCast.identifier part:@"id,snippet,contentDetails"];
+                query.streamId = liveStream.identifier;
+                [service executeQuery:query
+                    completionHandler:^(GTLRServiceTicket *callbackTicket,
+                                        GTLRYouTube_LiveBroadcast *returnBroadcast,
+                                        NSError *callbackError) {
+                        if (callbackError) {
+                            NSLog(@"Could not fetch video category list: %@", callbackError);
+                        } else {
+                            NSLog(@"category list = %@ livestream=%@",returnBroadcast,self.myStream);
+                            self.myStream;
+                        }
+                    }];
+
+            }
+        }];
+    
+    
+
+    
+}
+
+- (void)fetchCagegory {
+    GTLRYouTubeService *service = self.youTubeService;
+    
+    GTLRYouTubeQuery_VideoCategoriesList *query =
+    [GTLRYouTubeQuery_VideoCategoriesList queryWithPart:@"snippet,id"];
+    query.regionCode = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
+    
+    [service executeQuery:query
+        completionHandler:^(GTLRServiceTicket *callbackTicket,
+                            GTLRYouTube_VideoCategoryListResponse *categoryList,
+                            NSError *callbackError) {
+            if (callbackError) {
+                NSLog(@"Could not fetch video category list: %@", callbackError);
+            } else {
+                NSLog(@"category list = %@",categoryList);
+                for (GTLRYouTube_VideoCategory *category in categoryList) {
+                    NSString *title = category.snippet.title;
+                    NSString *categoryID = category.identifier;
+
                 }
             }
         }];

@@ -32,19 +32,43 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3i7-E4-f3G">
-                                <rect key="frame" x="33" y="479" width="128" height="56"/>
+                                <rect key="frame" x="25" y="236" width="128" height="40"/>
                                 <color key="backgroundColor" red="1" green="0.0" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                <state key="normal" title="Fetch"/>
+                                <state key="normal" title="FetchCategory"/>
                                 <connections>
                                     <action selector="fetch:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Ec7-GH-e1q"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yuR-Uz-gbW">
-                                <rect key="frame" x="188" y="479" width="128" height="56"/>
+                                <rect key="frame" x="194" y="236" width="128" height="40"/>
                                 <color key="backgroundColor" red="1" green="0.0" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                <state key="normal" title="FetchMy"/>
+                                <state key="normal" title="FetchChannel"/>
                                 <connections>
                                     <action selector="fetchMy:" destination="BYZ-38-t0r" eventType="touchUpInside" id="GKa-2a-IUK"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ef1-2M-SPf">
+                                <rect key="frame" x="25" y="302" width="128" height="40"/>
+                                <color key="backgroundColor" red="1" green="0.0" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="LiveBroadList"/>
+                                <connections>
+                                    <action selector="LiveBroadList:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Nel-Wk-Vgz"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1i7-eO-SHj">
+                                <rect key="frame" x="25" y="364" width="128" height="40"/>
+                                <color key="backgroundColor" red="1" green="0.0" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="LiveStreamList"/>
+                                <connections>
+                                    <action selector="liveStreamList:" destination="BYZ-38-t0r" eventType="touchUpInside" id="GOk-BW-vm0"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tSv-Fg-xpy">
+                                <rect key="frame" x="194" y="302" width="128" height="40"/>
+                                <color key="backgroundColor" red="1" green="0.0" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <state key="normal" title="NewBroadcast"/>
+                                <connections>
+                                    <action selector="newBroadcast:" destination="BYZ-38-t0r" eventType="touchUpInside" id="BRX-N7-Ajk"/>
                                 </connections>
                             </button>
                         </subviews>
