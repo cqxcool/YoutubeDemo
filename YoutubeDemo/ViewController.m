@@ -124,8 +124,9 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
 - (IBAction)liveStreamList:(id)sender {
     GTLRYouTubeService *service = self.youTubeService;
     GTLRYouTubeQuery_LiveStreamsList *query =
-    [GTLRYouTubeQuery_LiveStreamsList queryWithPart:@"id,snippet,contentDetails,status"];
-    query.mine = YES;
+    [GTLRYouTubeQuery_LiveStreamsList queryWithPart:@"id,cdn,snippet,contentDetails,status"];
+//    query.mine = YES;
+    query.identifier = @"XMHHBARmvQy5toFPo8BOaQ1466995002204608";
     [service executeQuery:query
         completionHandler:^(GTLRServiceTicket *callbackTicket,
                             GTLRYouTube_LiveStreamListResponse *liveStreamList,
@@ -192,8 +193,9 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
                 for (GTLRYouTube_LiveBroadcast *broadCast in categoryList) {
                     NSString *title = broadCast.snippet.title;
                     NSString *categoryID = broadCast.identifier;
+                    //XMHHBARmvQy5toFPo8BOaQ1466995002204608
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                        [self bind:broadCast];
+//                        [self bind:broadCast];
                       //  [self insert:broadCast];
                     });
                 }
