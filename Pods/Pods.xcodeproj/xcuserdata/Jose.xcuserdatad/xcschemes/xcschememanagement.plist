@@ -4,6 +4,16 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>GDLiveStreaming.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>GPUImage.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>GTMOAuth2.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -19,7 +29,22 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>MBProgressHUD.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>UriParser-cpp.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>VideoCore.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -32,6 +57,16 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>039EABD4C15A6BF79D651CAD0A78A30A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>03AB9611894A57353FA96DBF2D44E7A7</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>0FE9AE2ECE99588908EAA42967C09D1B</key>
 		<dict>
 			<key>primary</key>
@@ -42,17 +77,32 @@
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>2B5D77AF33E8A72D5054AD863C71CD18</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
 		<key>3EC508E2AD93A8B7862551E8450FF1A8</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>E78BB76A28C7EE2E1CC0E9B93A96B7CB</key>
+		<key>51BED1746B3607827FE1DDBDCCAEF3AF</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9A7E9B0E6CB27650563FF47856DBBD33</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>E2D68E720C7AAA17591373ED65FC9998</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>F4FC702EB4A9E49F6555C0AA59EC5B98</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FE2F1D7B9D9FCEA148517E4657B243F4</key>
 		<dict>
 			<key>primary</key>
 			<true/>

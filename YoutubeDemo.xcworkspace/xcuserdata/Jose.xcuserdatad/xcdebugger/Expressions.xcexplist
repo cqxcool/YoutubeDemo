@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "-[GTMSessionFetcher beginFetchMayDelay:mayAuthorize:]:GTMSessionFetcher.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "fetchRequest">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[GTLRService fetchObjectWithURL:objectClass:bodyObject:dataToPost:ETag:httpMethod:mayAuthorize:completionHandler:executingQuery:ticket:]:GTLRService.m">
+      </ContextState>
+      <ContextState
+         contextName = "-[ViewController viewDidLoad]:ViewController.m">
+      </ContextState>
+      <ContextState
+         contextName = "-[GTMOAuth2Authentication canAuthorize]:GTMOAuth2Authentication.m">
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

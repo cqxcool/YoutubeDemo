@@ -14,6 +14,7 @@
 		821D52491D23A03A0047C8A8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 821D52471D23A03A0047C8A8 /* Main.storyboard */; };
 		821D524B1D23A03A0047C8A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 821D524A1D23A03A0047C8A8 /* Assets.xcassets */; };
 		821D524E1D23A03A0047C8A8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 821D524C1D23A03A0047C8A8 /* LaunchScreen.storyboard */; };
+		82F435491D332D7E009CBA6C /* YoutubeManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 82F435481D332D7E009CBA6C /* YoutubeManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,8 @@
 		821D524A1D23A03A0047C8A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		821D524D1D23A03A0047C8A8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		821D524F1D23A03A0047C8A8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		82F435471D332D7E009CBA6C /* YoutubeManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YoutubeManager.h; sourceTree = "<group>"; };
+		82F435481D332D7E009CBA6C /* YoutubeManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YoutubeManager.m; sourceTree = "<group>"; };
 		BF4EB9A0CAFD0041066AF331 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -73,7 +76,6 @@
 		821D523D1D23A03A0047C8A8 /* YoutubeDemo */ = {
 			isa = PBXGroup;
 			children = (
-				8277FD1A1D2C9E3B0041B223 /* YoutubeSource */,
 				821D52411D23A03A0047C8A8 /* AppDelegate.h */,
 				821D52421D23A03A0047C8A8 /* AppDelegate.m */,
 				821D52441D23A03A0047C8A8 /* ViewController.h */,
@@ -83,6 +85,8 @@
 				821D524C1D23A03A0047C8A8 /* LaunchScreen.storyboard */,
 				821D524F1D23A03A0047C8A8 /* Info.plist */,
 				821D523E1D23A03A0047C8A8 /* Supporting Files */,
+				82F435471D332D7E009CBA6C /* YoutubeManager.h */,
+				82F435481D332D7E009CBA6C /* YoutubeManager.m */,
 			);
 			path = YoutubeDemo;
 			sourceTree = "<group>";
@@ -93,13 +97,6 @@
 				821D523F1D23A03A0047C8A8 /* main.m */,
 			);
 			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		8277FD1A1D2C9E3B0041B223 /* YoutubeSource */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = YoutubeSource;
 			sourceTree = "<group>";
 		};
 		DD54686735DDDADD1EA54EC3 /* Pods */ = {
@@ -235,6 +232,7 @@
 				821D52461D23A03A0047C8A8 /* ViewController.m in Sources */,
 				821D52431D23A03A0047C8A8 /* AppDelegate.m in Sources */,
 				821D52401D23A03A0047C8A8 /* main.m in Sources */,
+				82F435491D332D7E009CBA6C /* YoutubeManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

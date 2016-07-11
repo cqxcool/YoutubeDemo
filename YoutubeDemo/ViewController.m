@@ -10,6 +10,14 @@
 #import "GTMOAuth2Authentication.h"
 #import "GTMOAuth2ViewControllerTouch.h"
 #import "GTLRYouTube.h"
+#import "YoutubeManager.h"
+#import "MBProgressHUD.h"
+#import <GPUImage/GPUImageVideoCamera.h>
+#import <GPUImage/GPUImageView.h>
+#import <GDLiveStreaming/GDLRawDataOutput.h>
+
+#define FRONTROW_ROOT [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]
+
 
 #define GTL_USE_FRAMEWORK_IMPORTS 1
 
@@ -19,37 +27,41 @@
 #import "GTMSessionFetcherLogging.h"
 #import "GTLRService.h"
 
-static NSString *const kKeychainItemName = @"YoutubeDemo Token";
-
-static NSString *clientId=@"1088267263716-2frfetr0gep957ka86od8r3r9f8nn0bv.apps.googleusercontent.com";
-static NSString *clientSecret=@"PoEzufb6s5tSEvGlwahyH_Dg";
-static NSString *scope = @"https://www.googleapis.com/auth/youtube";
+//static NSString *const kKeychainItemName = @"YoutubeDemo Token";
+//
+//static NSString *clientId=@"1088267263716-2frfetr0gep957ka86od8r3r9f8nn0bv.apps.googleusercontent.com";
+//static NSString *clientSecret=@"PoEzufb6s5tSEvGlwahyH_Dg";
+//static NSString *scope = @"https://www.googleapis.com/auth/youtube";
 
 
 @interface ViewController ()
 @property (weak, nonatomic) IBOutlet UITextView *tokenTextView;
-@property(nonatomic,strong) NSString *token;
-@property (nonatomic, readonly) GTLRYouTubeService *youTubeService;
-@property (nonatomic,strong) GTMOAuth2Authentication *myAuth;
-@property (nonatomic,strong) GTLRYouTube_LiveStream *myStream;
+@property (weak, nonatomic) IBOutlet UILabel *loginLabel;
+@property(nonatomic,strong) GPUImageVideoCamera *camera;
+@property(nonatomic,strong) GPUImageView *imageView;
+@property(nonatomic,strong) GDLRawDataOutput *output;
+@property(nonatomic,strong)   GTLRYouTube_LiveBroadcast *currentBroadcast;
+@property(nonatomic,strong) NSTimer   *currentBroadcastTimer;
+@property(nonatomic,assign) BOOL isRequesting;
+
 @end
 
 @implementation ViewController
 
-- (GTLRYouTubeService *)youTubeService {
-    static GTLRYouTubeService *service;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        service = [[GTLRYouTubeService alloc] init];
-        // Have the service object set tickets to fetch consecutive pages
-        // of the feed so we do not need to manually fetch them.
-        service.shouldFetchNextPages = YES;
-        // Have the service object set tickets to retry temporary error conditions
-        // automatically.
-        service.retryEnabled = YES;
-    });
-    return service;
-}
+//- (GTLRYouTubeService *)youTubeService {
+//    static GTLRYouTubeService *service;
+//    static dispatch_once_t onceToken;
+//    dispatch_once(&onceToken, ^{
+//        service = [[GTLRYouTubeService alloc] init];
+//        // Have the service object set tickets to fetch consecutive pages
+//        // of the feed so we do not need to manually fetch them.
+//        service.shouldFetchNextPages = YES;
+//        // Have the service object set tickets to retry temporary error conditions
+//        // automatically.
+//        service.retryEnabled = YES;
+//    });
+//    return service;
+//}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -58,11 +70,24 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
     auth = [GTMOAuth2ViewControllerTouch authForGoogleFromKeychainForName:kKeychainItemName
                                                                  clientID:clientId
                                                              clientSecret:clientSecret];
+    
+     
+//    auth = [GTMOAuth2ViewControllerTouch authForGoogleFromKeychainForName:@"test_move_token"
+//                                                                 clientID:clientId
+//                                                             clientSecret:clientSecret];
+//    auth.refreshToken = @"1/Ux76xgbbEYzA39HB2On-cNq7RrrlEiutxqgDTmKW2K0";
+    
+    NSLog(@"tokent = %@",[[NSUserDefaults standardUserDefaults] objectForKey:@"token"]);
+    NSLog(@"refresh token = %@",auth.refreshToken);
+//    auth.accessToken = @"ya29.Ci8ZAynxUSjJK-XS-y6p2WObPo71oTJ1aIHMNciH_7sSDENCMGQ3gvJBV3PdLPeokQ";
+//    auth.expirationDate = [NSDate dateWithTimeIntervalSinceNow:500];
+//    auth.refreshToken = nil;
+    
     if (auth.canAuthorize) {
         // Select the Google service segment
         self.tokenTextView.text = [auth.parameters objectForKey:@"refresh_token"];
-        self.youTubeService.authorizer = auth;
-        self.myAuth = auth;
+        [YoutubeManager defaultManager].youTubeService.authorizer = auth;
+        self.loginLabel.text = @"已登录";
     }
     
     // Do any additional setup after loading the view, typically from a nib.
@@ -74,12 +99,7 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
 - (void)login
 {
     NSLog(@"Youtube 登录中......");
-    
-
-    
-    
     SEL finishedSel = @selector(viewController:finishedWithAuth:error:);
-    
     GTMOAuth2ViewControllerTouch *viewController;
     viewController = [GTMOAuth2ViewControllerTouch controllerWithScope:scope
                                                               clientID:clientId
@@ -88,12 +108,8 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
                                                               delegate:self
                                                       finishedSelector:finishedSel];
 //    viewController.loginDelegate = self;
-    
-
-    
     NSString *html = @"<html><body bgcolor=white><div align=center>Youtube 登录中......</div></body></html>";
     viewController.initialHTMLString = html;
-    
     [self.navigationController pushViewController:viewController animated:YES];
 }
 
@@ -106,243 +122,250 @@ static NSString *scope = @"https://www.googleapis.com/auth/youtube";
     }else{
         NSLog(@"Auth successed!");
         NSLog(@"Token: %@", [auth accessToken]);
-        self.token = [auth accessToken];
-        self.youTubeService.authorizer = auth;
-        self.tokenTextView.text = self.token;
+        [[NSUserDefaults standardUserDefaults] setObject:[auth accessToken] forKey:@"token"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        [YoutubeManager defaultManager].youTubeService.authorizer = auth;
+        self.tokenTextView.text = [auth accessToken];
     }
     [self.navigationController popViewControllerAnimated:YES];
 }
 
-
-- (IBAction)fetch:(id)sender {
-    [self fetchCagegory];
-}
-- (IBAction)fetchMy:(id)sender {
-    [self fetchMyChannelList];
-}
-
-- (IBAction)liveStreamList:(id)sender {
-    GTLRYouTubeService *service = self.youTubeService;
-    GTLRYouTubeQuery_LiveStreamsList *query =
-    [GTLRYouTubeQuery_LiveStreamsList queryWithPart:@"id,cdn,snippet,contentDetails,status"];
-//    query.mine = YES;
-    query.identifier = @"XMHHBARmvQy5toFPo8BOaQ1466995002204608";
-    [service executeQuery:query
-        completionHandler:^(GTLRServiceTicket *callbackTicket,
-                            GTLRYouTube_LiveStreamListResponse *liveStreamList,
-                            NSError *callbackError) {
-            if (callbackError) {
-                NSLog(@"Could not fetch video category list: %@", callbackError);
-            } else {
-                NSLog(@"category list = %@",liveStreamList);
-                for (GTLRYouTube_LiveStream *liveStream in liveStreamList) {
-                    NSString *title = liveStream.snippet.title;
-                    NSString *categoryID = liveStream.identifier;
-                    NSLog(@"title = %@ inject=%@",title,liveStream.cdn.ingestionInfo);
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//                        [self bind:broadCast];
-                    });
-                }
-                }
-        }];
-}
-- (IBAction)newBroadcast:(id)sender {
-    GTLRYouTubeService *service = self.youTubeService;
-    GTLRYouTube_LiveBroadcast *newBroadcast = [[GTLRYouTube_LiveBroadcast alloc] init];
-    newBroadcast.kind = @"youtube#liveBroadcast";
-    
-    GTLRYouTube_LiveBroadcastStatus *status = [[GTLRYouTube_LiveBroadcastStatus alloc] init];
-    status.privacyStatus = @"public";
-    newBroadcast.status = status;
-    
-    GTLRYouTube_LiveBroadcastSnippet *snippet = [[GTLRYouTube_LiveBroadcastSnippet alloc] init];
-    snippet.title = @"title";
-    snippet.scheduledStartTime = [GTLRDateTime dateTimeWithDate:[NSDate date]];
-    snippet.scheduledEndTime = [GTLRDateTime dateTimeWithDate:[NSDate dateWithTimeIntervalSinceNow:100000]];
-    newBroadcast.snippet = snippet;
-    
-    GTLRYouTubeQuery_LiveBroadcastsInsert *insertQuery =  [GTLRYouTubeQuery_LiveBroadcastsInsert queryWithObject:newBroadcast part:@"snippet,status"];
-    [service executeQuery:insertQuery
-        completionHandler:^(GTLRServiceTicket *callbackTicket,
-                            GTLRYouTube_LiveBroadcast *returnBroadcast,
-                            NSError *callbackError) {
-            if (callbackError) {
-                NSLog(@"Could not fetch video category list: %@", callbackError);
-            } else {
-                NSLog(@"category list = %@",returnBroadcast);
-                [self bind:returnBroadcast];
-            }
-        }];
-    
-}
-
-- (IBAction)LiveBroadList:(id)sender {
-    GTLRYouTubeService *service = self.youTubeService;
-    GTLRYouTubeQuery_LiveBroadcastsList *query =
-    [GTLRYouTubeQuery_LiveBroadcastsList queryWithPart:@"id,snippet,contentDetails,status"];
-    query.mine = YES;
-    query.broadcastType = @"persistent";
-    [service executeQuery:query
-        completionHandler:^(GTLRServiceTicket *callbackTicket,
-                            GTLRYouTube_LiveBroadcastListResponse *categoryList,
-                            NSError *callbackError) {
-            if (callbackError) {
-                NSLog(@"Could not fetch video category list: %@", callbackError);
-            } else {
-                NSLog(@"category list = %@",categoryList);
-                for (GTLRYouTube_LiveBroadcast *broadCast in categoryList) {
-                    NSString *title = broadCast.snippet.title;
-                    NSString *categoryID = broadCast.identifier;
-                    //XMHHBARmvQy5toFPo8BOaQ1466995002204608
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//                        [self bind:broadCast];
-                      //  [self insert:broadCast];
-                    });
-                }
-            }
-        }];
-}
-
-
-- (void)insert:(GTLRYouTube_LiveBroadcast*)broadCast
+- (IBAction)liveNow:(id)sender
 {
-    GTLRYouTubeService *service = self.youTubeService;
-    GTLRYouTubeQuery_LiveBroadcastsInsert *query =
-    [GTLRYouTubeQuery_LiveBroadcastsInsert queryWithObject:broadCast part:@"snippet,contentDetails,status"];
-    [service executeQuery:query
-        completionHandler:^(GTLRServiceTicket *callbackTicket,
-                            GTLRYouTube_LiveBroadcast *insertBroadcast,
-                            NSError *callbackError) {
-            if (callbackError) {
-                NSLog(@"Could not fetch video category list: %@", callbackError);
-            } else {
-                [self bind:insertBroadcast];
-            }
-        }];
-}
-
-
-- (void)bind:(GTLRYouTube_LiveBroadcast*)broadCast
-{
+   MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+   hud.labelText = @"Loading";
+   [hud show:YES];
     
-    GTLRYouTubeService *service = self.youTubeService;
-    
-    GTLRYouTube_LiveStream *newStream = [[GTLRYouTube_LiveStream alloc] init];
-    newStream.kind = @"youtube#liveStream";
-    GTLRYouTube_LiveStreamSnippet *snippet = [[GTLRYouTube_LiveStreamSnippet alloc] init];
-    snippet.title  = @"titile";
-    newStream.snippet = snippet;
-    GTLRYouTube_CdnSettings *setting = [[GTLRYouTube_CdnSettings alloc] init];
-    setting.format = @"240p";
-    setting.ingestionType = @"rtmp";
-    newStream.cdn = setting;
-    
-    
-    GTLRYouTubeQuery_LiveStreamsInsert *streamQuery =
-    [GTLRYouTubeQuery_LiveStreamsInsert queryWithObject:newStream part:@"id,snippet,cdn,status"];
-    [service executeQuery:streamQuery
-        completionHandler:^(GTLRServiceTicket *callbackTicket,
-                            GTLRYouTube_LiveStream *liveStream,
-                            NSError *callbackError) {
-            if (callbackError) {
-                NSLog(@"Could not fetch video category list: %@", callbackError);
-            } else {
-                NSLog(@"liveStream list = %@ path = %@",liveStream,liveStream.cdn.ingestionInfo);
-                broadCast.contentDetails.boundStreamId = liveStream.identifier;
-                self.myStream = liveStream;
-                GTLRYouTubeQuery_LiveBroadcastsBind *query =
-                [GTLRYouTubeQuery_LiveBroadcastsBind queryWithIdentifier:broadCast.identifier part:@"id,snippet,contentDetails"];
-                query.streamId = liveStream.identifier;
-                [service executeQuery:query
-                    completionHandler:^(GTLRServiceTicket *callbackTicket,
-                                        GTLRYouTube_LiveBroadcast *returnBroadcast,
-                                        NSError *callbackError) {
-                        if (callbackError) {
-                            NSLog(@"Could not fetch video category list: %@", callbackError);
-                        } else {
-                            NSLog(@"category list = %@ livestream=%@",returnBroadcast,self.myStream);
-                            self.myStream;
-                        }
-                    }];
-
-            }
-        }];
-    
-    
-
-    
-}
-
-- (void)fetchCagegory {
-    GTLRYouTubeService *service = self.youTubeService;
-    
-    GTLRYouTubeQuery_VideoCategoriesList *query =
-    [GTLRYouTubeQuery_VideoCategoriesList queryWithPart:@"snippet,id"];
-    query.regionCode = [[NSLocale currentLocale] objectForKey:NSLocaleCountryCode];
-    
-    [service executeQuery:query
-        completionHandler:^(GTLRServiceTicket *callbackTicket,
-                            GTLRYouTube_VideoCategoryListResponse *categoryList,
-                            NSError *callbackError) {
-            if (callbackError) {
-                NSLog(@"Could not fetch video category list: %@", callbackError);
-            } else {
-                NSLog(@"category list = %@",categoryList);
-                for (GTLRYouTube_VideoCategory *category in categoryList) {
-                    NSString *title = category.snippet.title;
-                    NSString *categoryID = category.identifier;
-
+    [[YoutubeManager defaultManager] getBroadcastList:@"persistent" identifier:nil complete:^(id result, NSError *err) {
+        if (!err) {
+            GTLRYouTube_LiveBroadcast *liveNowBroadcast = nil;
+            for (GTLRYouTube_LiveBroadcast *broadcast in result) {
+                if (broadcast.snippet.isDefaultBroadcast) {
+                    liveNowBroadcast = broadcast;
+                    break;
                 }
             }
-        }];
-}
-
-- (void)fetchMyChannelList {
-    GTLRYouTubeService *service = self.youTubeService;
-    GTLRYouTubeQuery_ChannelsList *query =
-    [GTLRYouTubeQuery_ChannelsList queryWithPart:@"contentDetails"];
-    query.mine = YES;
-    
-    // maxResults specifies the number of results per page.  Since we earlier
-    // specified shouldFetchNextPages=YES and this query fetches an object
-    // class derived from GTLRCollectionObject, all results should be fetched,
-    // though specifying a larger maxResults will reduce the number of fetches
-    // needed to retrieve all pages.
-    query.maxResults = 50;
-    
-    // We can specify the fields we want here to reduce the network
-    // bandwidth and memory needed for the fetched collection.
-    //
-    // For example, leave query.fields as nil during development.
-    // When ready to test and optimize your app, specify just the fields needed.
-    // For example, this sample app might use
-    //
-    // query.fields = @"kind,etag,items(id,etag,kind,contentDetails)";
-    
-    GTLRServiceTicket *_channelListTicket = [service executeQuery:query
-                             completionHandler:^(GTLRServiceTicket *callbackTicket,
-                                                 GTLRYouTube_ChannelListResponse *channelList,
-                                                 NSError *callbackError) {
-                                 // Callback
-                                 
-                                 // The contentDetails of the response has the playlists available for
-                                 // "my channel".
-                                 NSLog(@"fetchmy = %@",channelList);
-                                 if (channelList.items.count > 0) {
-                                     GTLRYouTube_Channel *channel = channelList[0];
-                                     NSLog(@"channel = %@",channel);
-                                 }
+            
+            [[YoutubeManager defaultManager] getLiveStreamList:liveNowBroadcast.contentDetails.boundStreamId
+                                                      complete:^(id result, NSError *err)
+            {
+                [hud hide:NO];
+                if (!err) {
+                    GTLRYouTube_LiveStream *stream = [result objectAtIndex:0];
+                    NSString *host = stream.cdn.ingestionInfo.ingestionAddress;
+                    NSString *stramName = stream.cdn.ingestionInfo.streamName;
+                    NSLog(@"stream = %@",stream);
+                    [self startCamera:host key:stramName];
+                }
+            }];
+        }else{
+            [hud hide:YES];
+        }
         
-                             }];
+    }];
+}
+
+- (IBAction)liveEvents:(id)sender
+{
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    hud.labelText = @"Loading";
+    [hud show:YES];
+    [self getLivestream:@"720p" complete:^(GTLRYouTube_LiveStream *stream)
+    {
+        __block GTLRYouTube_LiveStream *blockStream = stream;
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"HH:mm:ss"];
+        NSString *strDate = [dateFormatter stringFromDate:[NSDate date]];
+        NSString *title = [NSString stringWithFormat:@"%@-YoutubeDemo",strDate];
+        [[YoutubeManager defaultManager] createBroadcast:title privacyStatus:@"public" complete:^(id result, NSError *err) {
+            if (err) {
+                [hud hide:NO];
+                return ;
+            }
+            GTLRYouTube_LiveBroadcast *broadCast = result;
+            [[YoutubeManager defaultManager] bindBroadcast:broadCast withStream:stream complete:^(id result, NSError *err)
+            {
+                [hud hide:NO];
+                if (err) {
+                    return ;
+                }
+                self.currentBroadcast = broadCast;
+//                GTLRYouTube_LiveBroadcast *bindBroadCast = result;
+                [self startCamera:blockStream.cdn.ingestionInfo.ingestionAddress key:blockStream.cdn.ingestionInfo.streamName];
+            }];
+        }];
+    }];
+}
+
+- (IBAction)deleteEvents:(id)sender
+{
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    hud.labelText = @"Loading";
+    [hud show:YES];
     
+    [[YoutubeManager defaultManager] getBroadcastList:@"event" identifier:nil complete:^(id result, NSError *err) {
+        [hud hide:YES];
+        if (!err) {
+            for (GTLRYouTube_LiveBroadcast *broadcast in result) {
+                [[YoutubeManager defaultManager] deleteBroadcast:broadcast.identifier complete:^(id result, NSError *err){
+                 
+                }];
+            }
+        }else{
+            [hud hide:YES];
+        }
+        
+    }];
+}
+
+- (void)setCurrentBroadcast:(GTLRYouTube_LiveBroadcast *)currentBroadcast
+{
+    _currentBroadcast = currentBroadcast;
+    if (currentBroadcast) {
+        if (self.currentBroadcastTimer == nil) {
+            self.currentBroadcastTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(checkBroadcastStatus) userInfo:nil repeats:YES];
+        }
+    }else{
+        if (self.currentBroadcastTimer) {
+            [self.currentBroadcastTimer invalidate];
+            self.currentBroadcastTimer = nil;
+        }
+    }
+}
+
+- (void)checkBroadcastStatus
+{
+    if ([self.currentBroadcast.status.lifeCycleStatus hasPrefix:@"live"]) {
+        return;
+    }
+    if (self.isRequesting) {
+        return;
+    }
+    self.isRequesting = YES;
+    [[YoutubeManager defaultManager] getBroadcastList:@"event" identifier:self.currentBroadcast.identifier complete:^(id result, NSError *err) {
+        if (err) {
+            self.isRequesting = NO;
+            return;
+        }
+        GTLRYouTube_LiveBroadcast *broadcast = [result objectAtIndex:0];
+        NSLog(@"status = %@",broadcast.status);
+        
+        NSString *newStatus = nil;
+        if ([broadcast.status.lifeCycleStatus isEqualToString:@"ready"]) {
+            newStatus = @"testing";
+        }else if ([broadcast.status.lifeCycleStatus hasPrefix:@"test"]){
+            newStatus = @"live";
+        }
+        
+        if (newStatus) {
+            [[YoutubeManager defaultManager] broadcastTransition:newStatus identifier:broadcast.identifier complete:^(id result, NSError *err) {
+                self.isRequesting = NO;
+                if (err) {
+                    return ;
+                }
+                self.currentBroadcast.status.lifeCycleStatus = newStatus;
+            }];
+        }else{
+            self.isRequesting = NO;
+        }
+    }];
 }
 
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void)getLivestream:(NSString*)videoFormat
+             complete:(void (^)(GTLRYouTube_LiveStream *stream))block
+{
+    [[YoutubeManager defaultManager] getLiveStreamList:nil complete:^(id result, NSError *err)
+    {
+        if (err) {
+            if (block)
+                block(nil);
+            return ;
+        }
+        
+        __block GTLRYouTube_LiveStream *formatStream = nil;
+        for (GTLRYouTube_LiveStream *stream in result) {
+            if ([stream.snippet.title isEqualToString:videoFormat]) {
+                formatStream = stream;
+                break;
+            }
+        }
+        if (formatStream == nil) {
+            [[YoutubeManager defaultManager] createLivestream:videoFormat
+                                                  videoFormat:videoFormat
+                                                     complete:^(id result, NSError *err)
+            {
+                if (err) {
+                    if (block)
+                        block(nil);
+                    return ;
+                }
+                formatStream = result;
+                if (block)
+                    block(formatStream);
+            }];
+        }else{
+            if (block)
+                block(formatStream);
+        }
+    }];
 }
 
-- (IBAction)featch:(id)sender {
+
+- (void)startCamera:(NSString*)url key:(NSString*)key
+{
+    //  1. 创建视频摄像头
+    self.camera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPreset1280x720
+                                                      cameraPosition:AVCaptureDevicePositionBack];
+    //  2. 设置摄像头帧率
+    self.camera.frameRate = 25;
+    //  3. 设置摄像头输出视频的方向
+    self.camera.outputImageOrientation = UIInterfaceOrientationPortrait;
+    //  4.0 创建用于展示视频的GPUImageView
+    self.imageView = [[GPUImageView alloc] init];
+    self.imageView.frame = self.view.bounds;
+    [self.view addSubview:self.imageView];
+    
+    
+    UIButton *closeButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 60, 80, 60)];
+    [closeButton setBackgroundColor:[UIColor greenColor]];
+    [closeButton setTitle:@"Close" forState:UIControlStateNormal];
+    [closeButton addTarget:self action:@selector(stopCamera) forControlEvents:UIControlEventTouchUpInside];
+    [self.imageView addSubview:closeButton];
+    
+    //  4.1 添加GPUImageView为摄像头的的输出目标
+    [self.camera addTarget:self.imageView];
+    //  5. 创建原始数据输出对象
+    
+    self.output = [[GDLRawDataOutput alloc] initWithVideoCamera:self.camera withImageSize:CGSizeMake(720, 1280)];
+    
+    //  6. 添加数据输出对象为摄像头输出目标
+    [self.camera addTarget:self.output];
+    
+    //  7.开始捕获视频
+    [self.camera startCameraCapture];
+    
+    //  8.开始上传视频
+    [ self.output startUploadStreamWithURL:url andStreamKey:key];
 }
+
+- (void)stopCamera
+{
+    if ([self.currentBroadcast.status.lifeCycleStatus hasPrefix:@"live"]) {
+            [[YoutubeManager defaultManager] broadcastTransition:@"complete" identifier:self.currentBroadcast.identifier complete:^(id result, NSError *err) {
+                if (err) {
+                    return ;
+                }
+            }];
+    }
+    
+    self.isRequesting = NO;
+    self.currentBroadcast = nil;
+    [self.output stopUploadStream];
+    [self.camera stopCameraCapture];
+    
+    [self.imageView removeFromSuperview];
+}
+
+
 @end
